@@ -1,14 +1,28 @@
 var request = require('request');
 var cheerio = require('cheerio');
 
-request('http://www.visitseattle.org/things-to-do/neighborhoods/', function(error, response, data) {
-    var $ = cheerio.load(data);
+request('http://www.visitseattle.org/things-to-do/neighborhoods/', function (error, response, body) {
+    var $ = cheerio.load(body);
+    var neighborhoodsScrape = $('.info-window-content')
 
-    var neighborhoods = $('.info-window-content').map(function(index, element) {
+    var neighborhoods = neighborhoodsScrape.map((idx, hood) => {
+        // grab the text/attributes from cheerio the cheerio objects
+        var name = $(hood).find('h4').text();
+        var link = $(hood).find('a').attr('href');
+        var photo = $(hood).find('.info-window-content-image').attr('style');
+        var description = $(hood).find('p').text();
+
+        // photo is: background-image: url('http://example.com')
+        // split on the ' character, and grab the middle url portion
+        photo = photo ? photo.split(/'/)[1] : ""
+
         return {
-            name: $(element).find('h4').text(),
-            link: $(element).find('a').attr('href')
-        };
+            name,
+            link,
+            photo,
+            description
+        }
+
     }).get();
 
     console.log(neighborhoods);
